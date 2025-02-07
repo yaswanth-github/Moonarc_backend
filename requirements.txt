@@ -4,3 +4,4 @@ numpy
 opencv-python-headless
 pillow
 gunicorn
+flask_cors
