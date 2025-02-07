@@ -113,7 +113,7 @@ def predict():
         # Return the result as JSON
         return jsonify({
             'prediction': predicted_class,
-            'confidence': round(confidence, 2)
+            'confidence': round(float(confidence), 2)
         })
     except Exception as e:
         # Handle unexpected errors gracefully

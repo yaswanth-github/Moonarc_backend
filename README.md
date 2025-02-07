@@ -10,3 +10,7 @@ python app.py
 curl -X POST -F "file=@/Users/mac/Documents/MoonArc/Tested_images/nm.jpeg" http://127.0.0.1:5001/predict
 ```
 
+
+```bash
+curl -X POST -F "file=@/Users/mac/Documents/MoonArc/Tested_images/nm.jpeg" https://moonarc-backend.onrender.com/predict
+```
