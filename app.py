@@ -4,6 +4,8 @@ import numpy as np
 import cv2
 from PIL import Image
 import io
+import os
+import logging
 from tensorflow.keras.utils import register_keras_serializable
 from flask_cors import CORS  # Import CORS for handling cross-origin requests
 
@@ -12,6 +14,9 @@ app = Flask(__name__)
 
 # Enable CORS for all routes
 CORS(app)
+
+# Set up logging
+logging.basicConfig(level=logging.INFO)
 
 # Register the custom preprocessing function
 @register_keras_serializable()
@@ -23,7 +28,6 @@ def effnet_preprocess(img):
     from tensorflow.keras.applications.efficientnet import preprocess_input
     return preprocess_input(img)
 
-
 # Load the pre-trained model
 def load_model():
     """
@@ -31,9 +35,14 @@ def load_model():
     Ensure the custom function `effnet_preprocess` is available during loading.
     """
     try:
+        model_path = os.path.join(os.getcwd(), 'Saved_Models/MoonArc89.keras')
+        if not os.path.exists(model_path):
+            raise FileNotFoundError(f"Model file not found at {model_path}")
+
+        logging.info("Loading model...")
         tf.keras.config.enable_unsafe_deserialization()
         model = tf.keras.models.load_model(
-            'Saved_Models/MoonArc89.keras',
+            model_path,
             compile=False,
             custom_objects={'effnet_preprocess': effnet_preprocess}
         )
@@ -42,13 +51,18 @@ def load_model():
             loss='sparse_categorical_crossentropy',
             metrics=['accuracy']
         )
+        logging.info("Model loaded successfully!")
         return model
     except Exception as e:
+        logging.error(f"Error loading the model: {str(e)}")
         raise RuntimeError(f"Error loading the model: {str(e)}")
 
-
 # Initialize the model
-model = load_model()
+try:
+    model = load_model()
+except RuntimeError as e:
+    logging.error("Failed to load model. Exiting application.")
+    exit(1)
 
 # Define class names (based on the dataset structure in the PDF)
 class_names = [
@@ -56,7 +70,6 @@ class_names = [
     'third quarter', 'waning crescent', 'waning gibbous',
     'waxing crescent', 'waxing gibbous'
 ]
-
 
 def preprocess_image(image):
     """
@@ -67,7 +80,6 @@ def preprocess_image(image):
     img_array = tf.keras.utils.img_to_array(resized)  # Convert to NumPy array
     img_array = tf.expand_dims(img_array, axis=0)  # Add batch dimension
     return img_array
-
 
 @app.route('/predict', methods=['POST'])
 def predict():
@@ -105,9 +117,13 @@ def predict():
         })
     except Exception as e:
         # Handle unexpected errors gracefully
+        logging.error(f"Prediction error: {str(e)}")
         return jsonify({'error': f'An error occurred: {str(e)}'}), 500
 
+@app.route('/', methods=['GET'])
+def home():
+    return "MoonArc Backend is Running!", 200
 
 if __name__ == '__main__':
-    # Run the Flask app in debug mode
-    app.run(debug=True, host='0.0.0.0', port=5001)
+    port = int(os.environ.get('PORT', 5001))  # Use Render-assigned port or default 5001
+    app.run(debug=False, host='0.0.0.0', port=port)
