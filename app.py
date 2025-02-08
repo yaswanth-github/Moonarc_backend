@@ -98,7 +98,7 @@ def predict():
 
         return jsonify({
             'prediction': predicted_class,
-            'confidence': round(confidence, 2)
+            'confidence': round(float(confidence), 2)
         })
     except Exception as e:
         return jsonify({'error': f'An error occurred: {str(e)}'}), 500
