@@ -28,7 +28,7 @@ def load_model():
     """
     Load the TensorFlow/Keras model.
     """
-    model_path = 'Saved_Models/MoonArc89.keras'
+    model_path = 'Saved_Models/MoonArcModel.keras'
     if not os.path.exists(model_path):
         raise FileNotFoundError(f"Model file not found: {model_path}")
     
