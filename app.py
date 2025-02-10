@@ -6,30 +6,25 @@ from PIL import Image
 import io
 import os
 from tensorflow.keras.utils import register_keras_serializable
-from flask_cors import CORS  # Import CORS for handling cross-origin requests
+from flask_cors import CORS  # Enable CORS for handling cross-origin requests
 
 # Initialize Flask app
 app = Flask(__name__)
-
-# Enable CORS for all routes
 CORS(app)
 
 # Register the custom preprocessing functions
 @register_keras_serializable()
 def effnet_preprocess(img):
-    """Custom preprocessing function for EfficientNet."""
     from tensorflow.keras.applications.efficientnet import preprocess_input
     return preprocess_input(img)
 
 @register_keras_serializable()
 def resnet_preprocess(img):
-    """Custom preprocessing function for ResNet."""
     from tensorflow.keras.applications.resnet import preprocess_input
     return preprocess_input(img)
 
 # Load the pre-trained model
 def load_model():
-    """Load the TensorFlow/Keras model with custom objects."""
     model_path = 'Saved_Models/MoonArcModel.keras'
     if not os.path.exists(model_path):
         raise FileNotFoundError(f"❌ Model file not found: {model_path}")
@@ -66,8 +61,43 @@ class_names = [
     'waxing crescent', 'waxing gibbous'
 ]
 
+# Function to detect, crop, and enhance the moon in an image
+def detect_and_crop_moon(image):
+    gray = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
+    blurred = cv2.GaussianBlur(gray, (5, 5), 0)
+    thresh = cv2.adaptiveThreshold(blurred, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV, 11, 2)
+    contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    
+    if contours:
+        largest_contour = max(contours, key=cv2.contourArea)
+        (x, y), radius = cv2.minEnclosingCircle(largest_contour)
+        center = (int(x), int(y))
+        radius = int(radius)
+        
+        y_min = max(center[1] - radius, 0)
+        y_max = min(center[1] + radius, image.shape[0])
+        x_min = max(center[0] - radius, 0)
+        x_max = min(center[0] + radius, image.shape[1])
+        
+        cropped = image[y_min:y_max, x_min:x_max]
+        
+        if cropped.size == 0:
+            return image  # Return original if cropping fails
+        
+        lab = cv2.cvtColor(cropped, cv2.COLOR_RGB2LAB)
+        l_channel, a_channel, b_channel = cv2.split(lab)
+        clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
+        clahe_l = clahe.apply(l_channel)
+        enhanced_lab = cv2.merge((clahe_l, a_channel, b_channel))
+        enhanced = cv2.cvtColor(enhanced_lab, cv2.COLOR_LAB2RGB)
+        
+        return enhanced
+    
+    return image  # Return original if no moon detected
+
+# Preprocess image for model prediction
 def preprocess_image(image):
-    """Preprocess the input image for prediction."""
+    image = detect_and_crop_moon(image)
     resized = cv2.resize(image, (224, 224))
     img_array = tf.keras.utils.img_to_array(resized)
     img_array = tf.expand_dims(img_array, axis=0)
@@ -75,7 +105,6 @@ def preprocess_image(image):
 
 @app.route('/predict', methods=['POST'])
 def predict():
-    """Handle POST requests to predict moon phases."""
     if 'file' not in request.files:
         return jsonify({'error': 'No file uploaded'}), 400
 
@@ -106,7 +135,5 @@ def home():
     return "🌙 MoonArc Backend is Running!", 200
 
 if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 8000))  # Change to 8000
+    port = int(os.environ.get('PORT', 8000))  # Running on port 8000
     app.run(debug=False, host='0.0.0.0', port=port)
-
-#
