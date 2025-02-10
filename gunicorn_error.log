@@ -1,0 +1,12 @@
+[2025-02-10 16:00:52 +0000] [62737] [INFO] Starting gunicorn 23.0.0
+[2025-02-10 16:00:52 +0000] [62737] [ERROR] Connection in use: ('0.0.0.0', 8000)
+[2025-02-10 16:00:52 +0000] [62737] [ERROR] connection to ('0.0.0.0', 8000) failed: [Errno 98] Address already in use
+[2025-02-10 16:00:53 +0000] [62737] [ERROR] Connection in use: ('0.0.0.0', 8000)
+[2025-02-10 16:00:53 +0000] [62737] [ERROR] connection to ('0.0.0.0', 8000) failed: [Errno 98] Address already in use
+[2025-02-10 16:00:54 +0000] [62737] [ERROR] Connection in use: ('0.0.0.0', 8000)
+[2025-02-10 16:00:54 +0000] [62737] [ERROR] connection to ('0.0.0.0', 8000) failed: [Errno 98] Address already in use
+[2025-02-10 16:00:55 +0000] [62737] [ERROR] Connection in use: ('0.0.0.0', 8000)
+[2025-02-10 16:00:55 +0000] [62737] [ERROR] connection to ('0.0.0.0', 8000) failed: [Errno 98] Address already in use
+[2025-02-10 16:00:56 +0000] [62737] [ERROR] Connection in use: ('0.0.0.0', 8000)
+[2025-02-10 16:00:56 +0000] [62737] [ERROR] connection to ('0.0.0.0', 8000) failed: [Errno 98] Address already in use
+[2025-02-10 16:00:57 +0000] [62737] [ERROR] Can't connect to ('0.0.0.0', 8000)
