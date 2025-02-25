@@ -10,7 +10,7 @@ from flask_cors import CORS  # Enable CORS for handling cross-origin requests
 
 # Initialize Flask app
 app = Flask(__name__)
-CORS(app)
+CORS(app, resources={r"/*": {"origins": "*"}})
 
 # Register the custom preprocessing functions
 @register_keras_serializable()
