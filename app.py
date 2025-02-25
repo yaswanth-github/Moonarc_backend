@@ -7,12 +7,23 @@ import io
 import os
 from tensorflow.keras.utils import register_keras_serializable
 from flask_cors import CORS  # Enable CORS for handling cross-origin requests
+from werkzeug.exceptions import RequestEntityTooLarge
 
 # Initialize Flask app
 app = Flask(__name__)
+
+# Set max request size to 10MB
+app.config['MAX_CONTENT_LENGTH'] = 10 * 1024 * 1024  # 10MB limit
+
+# Enable CORS for all routes and origins
 CORS(app, resources={r"/*": {"origins": "*"}})
 
-# Register the custom preprocessing functions
+# Handle large file error
+@app.errorhandler(RequestEntityTooLarge)
+def handle_large_file(e):
+    return jsonify({'error': 'File too large. Max size is 10MB'}), 413
+
+# Register the custom preprocessing function
 @register_keras_serializable()
 def resnet_preprocess(img):
     from tensorflow.keras.applications.resnet import preprocess_input
@@ -23,7 +34,7 @@ def load_model():
     model_path = 'Saved_Models/Model.keras'
     if not os.path.exists(model_path):
         raise FileNotFoundError(f"❌ Model file not found: {model_path}")
-    
+
     try:
         tf.keras.config.enable_unsafe_deserialization()
         model = tf.keras.models.load_model(
@@ -45,7 +56,7 @@ def load_model():
 # Initialize the model
 try:
     model = load_model()
-except RuntimeError as e:
+except RuntimeError:
     print("❌ Model loading failed. Exiting...")
     exit(1)
 
