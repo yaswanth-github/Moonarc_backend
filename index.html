@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MoonArc API Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; margin: 50px; }
+        #preview { max-width: 300px; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <h2>Test MoonArc API</h2>
+    <input type="file" id="imageInput" accept="image/*">
+    <button onclick="uploadImage()">Predict</button>
+    <p id="result"></p>
+    <img id="preview" src="#" alt="Image Preview" style="display:none;">
+
+    <script>
+        function uploadImage() {
+            const fileInput = document.getElementById('imageInput');
+            if (!fileInput.files.length) {
+                alert('Please select an image.');
+                return;
+            }
+            
+            const file = fileInput.files[0];
+            const formData = new FormData();
+            formData.append('file', file);
+            
+            fetch('http://localhost:8000/predict', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('result').innerText = `Prediction: ${data.prediction}, Confidence: ${data.confidence}%`;
+                
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('preview').src = e.target.result;
+                    document.getElementById('preview').style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            })
+            .catch(error => console.error('Error:', error));
+        }
+    </script>
+</body>
+</html>

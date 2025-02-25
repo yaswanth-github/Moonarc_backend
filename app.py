@@ -14,18 +14,13 @@ CORS(app)
 
 # Register the custom preprocessing functions
 @register_keras_serializable()
-def effnet_preprocess(img):
-    from tensorflow.keras.applications.efficientnet import preprocess_input
-    return preprocess_input(img)
-
-@register_keras_serializable()
 def resnet_preprocess(img):
     from tensorflow.keras.applications.resnet import preprocess_input
     return preprocess_input(img)
 
 # Load the pre-trained model
 def load_model():
-    model_path = 'Saved_Models/MoonArcModel.keras'
+    model_path = 'Saved_Models/Model.keras'
     if not os.path.exists(model_path):
         raise FileNotFoundError(f"❌ Model file not found: {model_path}")
     
@@ -34,7 +29,7 @@ def load_model():
         model = tf.keras.models.load_model(
             model_path,
             compile=False,
-            custom_objects={'effnet_preprocess': effnet_preprocess, 'resnet_preprocess': resnet_preprocess}
+            custom_objects={'resnet_preprocess': resnet_preprocess}
         )
         model.compile(
             optimizer=tf.keras.optimizers.Adam(learning_rate=0.0001),
